@@ -28,7 +28,7 @@ export class ColorWheel extends Component {
     }
   }
 
-  componentWillMount = () => {
+  componentDidMount = () => {
     this._panResponder = PanResponder.create({
       onStartShouldSetPanResponderCapture: ({nativeEvent}) => {
         if (this.outBounds(nativeEvent)) return
@@ -153,9 +153,10 @@ export class ColorWheel extends Component {
   }
 
   forceUpdate = color => {
-    const {h, s} = colorsys.hex2Hsv(color)
+    const {h, s, v} = colorsys.hex2Hsv(color)
     const {left, top} = this.calcCartesian(h, s / 100)
     this.setState({currentColor: color})
+    this.props.onColorChange({h, s, v})
     this.state.pan.setValue({
       x: left - this.props.thumbSize / 2,
       y: top - this.props.thumbSize / 2,
@@ -163,9 +164,10 @@ export class ColorWheel extends Component {
   }
 
   animatedUpdate = color => {
-    const {h, s} = colorsys.hex2Hsv(color)
+    const {h, s, v} = colorsys.hex2Hsv(color)
     const {left, top} = this.calcCartesian(h, s / 100)
     this.setState({currentColor: color})
+    this.props.onColorChange({h, s, v})
     Animated.spring(this.state.pan, {
       toValue: {
         x: left - this.props.thumbSize / 2,
@@ -188,15 +190,16 @@ export class ColorWheel extends Component {
       },
     ]
 
+    const panHandlers = this._panResponder && this._panResponder.panHandlers || {}
+
     return (
       <View
         ref={node => {
           this.self = node
         }}
-        {...this._panResponder.panHandlers}
+        {...panHandlers}
         onLayout={nativeEvent => this.onLayout(nativeEvent)}
-        style={[styles.coverResponder, this.props.style]}
-      >
+        style={[styles.coverResponder, this.props.style]}>
         <Image
           style={[styles.img, {height: radius * 2, width: radius * 2}]}
           source={require('./color-wheel.png')}
